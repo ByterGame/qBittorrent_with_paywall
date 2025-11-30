@@ -105,6 +105,7 @@
 #endif
 #endif
 
+
 namespace
 {
 #define SETTINGS_KEY(name) u"Application/" name
