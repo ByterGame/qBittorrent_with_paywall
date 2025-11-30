@@ -114,6 +114,7 @@
 #include "trackerentry.h"
 #include "trackerentrystatus.h"
 
+
 using namespace std::chrono_literals;
 using namespace BitTorrent;
 
@@ -589,6 +590,8 @@ SessionImpl::SessionImpl(QObject *parent)
     , m_freeDiskSpaceChecker {new FreeDiskSpaceChecker(savePath())}
     , m_freeDiskSpaceCheckingTimer {new QTimer(this)}
 {
+    
+
     // It is required to perform async access to libtorrent sequentially
     m_asyncWorker->setMaxThreadCount(1);
     m_asyncWorker->setObjectName("SessionImpl m_asyncWorker");
@@ -620,6 +623,8 @@ SessionImpl::SessionImpl(QObject *parent)
     });
 
     initializeNativeSession();
+
+
     configureComponents();
 
     if (isBandwidthSchedulerEnabled())

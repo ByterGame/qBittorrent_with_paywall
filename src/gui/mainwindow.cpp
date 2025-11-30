@@ -272,6 +272,7 @@ MainWindow::MainWindow(IGUIApplication *app, const WindowState initialState, con
     connect(hSplitter, &QSplitter::splitterMoved, this, &MainWindow::saveSettings);
     connect(m_splitter, &QSplitter::splitterMoved, this, &MainWindow::saveSplitterSettings);
 
+
 #ifdef Q_OS_MACOS
     // Increase top spacing to avoid tab overlapping
     m_ui->centralWidgetLayout->addSpacing(8);

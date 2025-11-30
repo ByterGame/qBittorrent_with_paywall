@@ -1,0 +1,36 @@
+test
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date:      Sun Nov 30 21:32:09 2025 +1000
+#
+# On branch master
+# Your branch is up to date with 'origin/master'.
+#
+# Changes to be committed:
+#	new file:   .vs/VSWorkspaceState.json
+#	new file:   .vs/qBittorrent_with_paywall/FileContentIndex/1b7553cd-58fd-4a55-9b48-c18ceb568872.vsidx
+#	new file:   .vs/qBittorrent_with_paywall/FileContentIndex/1f992ba2-0b3e-4745-b856-a3716be5cbb5.vsidx
+#	new file:   .vs/qBittorrent_with_paywall/FileContentIndex/25cf7e3a-76ba-4b32-b907-ab232f27a6ea.vsidx
+#	new file:   .vs/qBittorrent_with_paywall/FileContentIndex/2fdd27f8-567a-4384-8529-41ff6e3b0b23.vsidx
+#	new file:   .vs/qBittorrent_with_paywall/FileContentIndex/5b687b9a-cecd-4a1a-a938-46310a1b4a87.vsidx
+#	new file:   .vs/qBittorrent_with_paywall/FileContentIndex/9d3a4b3e-174d-4721-85ce-b7e2d8f69914.vsidx
+#	new file:   .vs/qBittorrent_with_paywall/FileContentIndex/c8c816d6-8fb6-4b35-9f9d-bd33c1be73dd.vsidx
+#	new file:   .vs/qBittorrent_with_paywall/FileContentIndex/f630dd9d-5e03-4800-8466-7bd37aeb6780.vsidx
+#	new file:   .vs/qBittorrent_with_paywall/v17/.wsuo
+#	new file:   .vs/qBittorrent_with_paywall/v17/DocumentLayout.json
+#	new file:   .vs/qBittorrent_with_paywall/v17/workspaceFileList.bin
+#	new file:   .vs/slnx.sqlite
+#	new file:   libtorrent
+#	modified:   src/app/application.cpp
+#	modified:   src/app/main.cpp
+#	modified:   src/base/bittorrent/sessionimpl.cpp
+#	modified:   src/gui/mainwindow.cpp
+#	modified:   src/gui/mainwindow.h
+#	new file:   vcpkg
+#
+# Changes not staged for commit:
+#	modified:   libtorrent (untracked content)
+#	modified:   vcpkg (untracked content)
+#
