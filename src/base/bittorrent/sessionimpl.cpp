@@ -2917,6 +2917,10 @@ bool SessionImpl::addTorrent_impl(const TorrentDescriptor &source, const AddTorr
     else
         p.flags |= lt::torrent_flags::auto_managed;
 
+    // добавил, чтобы клиент не ругался на то, что я шифрую данные при перепроверке
+    // p.flags |= lt::torrent_flags::disable_hash_checks;
+
+
     p.flags |= lt::torrent_flags::duplicate_is_error;
 
     p.added_time = std::time(nullptr);
