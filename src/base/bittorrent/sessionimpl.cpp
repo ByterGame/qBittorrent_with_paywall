@@ -623,6 +623,7 @@ SessionImpl::SessionImpl(QObject *parent)
     });
 
     initializeNativeSession();
+    m_nativeSession->set_alert_mask(lt::alert::all_categories);
 
 
     configureComponents();
@@ -2918,7 +2919,7 @@ bool SessionImpl::addTorrent_impl(const TorrentDescriptor &source, const AddTorr
         p.flags |= lt::torrent_flags::auto_managed;
 
     // добавил, чтобы клиент не ругался на то, что я шифрую данные при перепроверке
-    // p.flags |= lt::torrent_flags::disable_hash_checks;
+    p.flags |= lt::torrent_flags::seed_mode; // нихера это кстати не работает:)
 
 
     p.flags |= lt::torrent_flags::duplicate_is_error;

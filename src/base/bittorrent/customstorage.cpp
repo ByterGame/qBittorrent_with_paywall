@@ -29,29 +29,22 @@
 #include "customstorage.h"
 
 #include <libtorrent/download_priority.hpp>
-
+#include <libtorrent/hasher.hpp>
 #include "base/utils/fs.h"
 #include "common.h"
 
 // Шифратор с хранилищем
 #include <unordered_map>
 #include <vector>
+#include <QDebug>
 
-class SimpleXORCipher {
-public:
-    SimpleXORCipher(char key) : m_key(key) {}
+static const char FIXED_ENCRYPTION_KEY = 0x55; 
 
-    void processBuffer(const char* input, char* output, std::size_t length) {
-        for (std::size_t i = 0; i < length; ++i) {
-            output[i] = input[i] ^ m_key;
-        }
+void xorBuffer(const char* input, char* output, std::size_t length, char key) {
+    for (std::size_t i = 0; i < length; ++i) {
+        output[i] = input[i] ^ key;
     }
-
-private:
-    char m_key;
-};
-
-static std::unordered_map<lt::storage_index_t, SimpleXORCipher> g_encryptionKeys;
+}
 // Конец вставки
 
 #ifdef QBT_USES_LIBTORRENT2
@@ -113,19 +106,7 @@ bool CustomDiskIOThread::async_write(lt::storage_index_t storage, const lt::peer
                                      , const char *buf, std::shared_ptr<lt::disk_observer> diskObserver
                                      , std::function<void (const lt::storage_error &)> handler, lt::disk_job_flags_t flags)
 {
-    if (g_encryptionKeys.find(storage) == g_encryptionKeys.end()) {
-        g_encryptionKeys.emplace(storage, SimpleXORCipher(0x55));
-    }
-
-    SimpleXORCipher& cipher = g_encryptionKeys.at(storage);
-
-    std::vector<char> encryptedBuf(peerRequest.length);
-
-    cipher.processBuffer(buf, encryptedBuf.data(), peerRequest.length);
-
-    const char* bufferToWrite = encryptedBuf.data();
-
-    return m_nativeDiskIO->async_write(storage, peerRequest, bufferToWrite, std::move(diskObserver), std::move(handler), flags);
+    return m_nativeDiskIO->async_write(storage, peerRequest, buf, std::move(diskObserver), std::move(handler), flags);
 }
 
 void CustomDiskIOThread::async_hash(lt::storage_index_t storage, lt::piece_index_t piece
