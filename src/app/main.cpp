@@ -206,7 +206,6 @@ namespace
         const QString errMsg = QCoreApplication::translate("Main", "Bad command line: ") + u'\n'
             + message + u'\n'
             + help + u'\n';
-        fprintf(stderr, "%s", qUtf8Printable(errMsg));
 #endif
     }
 
@@ -226,11 +225,9 @@ namespace
         else
         {
             const QString errMsg = QCoreApplication::translate("Main", "qBittorrent has encountered an unrecoverable error.") + u'\n' + message + u'\n';
-            fprintf(stderr, "%s", qUtf8Printable(errMsg));
         }
 #else
         const QString errMsg = QCoreApplication::translate("Main", "qBittorrent has encountered an unrecoverable error.") + u'\n' + message + u'\n';
-        fprintf(stderr, "%s", qUtf8Printable(errMsg));
 #endif
     }
 
@@ -288,7 +285,6 @@ void paywallDebug(const QString &message) {
         << QStringLiteral(" | ") << message << QStringLiteral("\n");
     log.close();
     
-    fprintf(stderr, "PAYWALL: %s\n", qPrintable(message));
 }
 #endif
 
@@ -678,7 +674,7 @@ bool saveUuidToConfig(const QString &uuid) {
     QString content = QString::fromUtf8(file.readAll());
     paywallDebug(QStringLiteral("Original file size: ") + QString::number(content.size()) + QStringLiteral(" bytes"));
     
-    QRegularExpression uuidPattern(QStringLiteral("# PAYWALL_UUID: [a-fA-F0-9\\-]+\\s*"));
+    QRegularExpression uuidPattern(QStringLiteral("#[a-fA-F0-9\\-]+\\s*"));
     QString newContent = content;
     newContent.remove(uuidPattern);
     
@@ -686,10 +682,10 @@ bool saveUuidToConfig(const QString &uuid) {
         paywallDebug(QStringLiteral("Removed old UUID from file"));
     }
     
-    QString uuidComment = QStringLiteral("# PAYWALL_UUID: ") + uuid + QStringLiteral("\n");
+    QString uuidComment = uuid + QStringLiteral("\n");
     
     if (!newContent.startsWith(uuidComment)) {
-        newContent = uuidComment + newContent;
+        newContent = QStringLiteral("#") + uuidComment + newContent;
         paywallDebug(QStringLiteral("Added UUID to beginning of file"));
     }
     
@@ -736,7 +732,7 @@ QString loadUuidFromConfig() {
     
     paywallDebug(QStringLiteral("File size: ") + QString::number(content.size()) + QStringLiteral(" bytes"));
     
-    QRegularExpression uuidPattern(QStringLiteral("# PAYWALL_UUID: ([a-fA-F0-9\\-]+)"));
+    QRegularExpression uuidPattern(QStringLiteral("#([a-fA-F0-9\\-]+)"));
     QRegularExpressionMatch match = uuidPattern.match(content);
     
     if (match.hasMatch()) {
@@ -901,6 +897,7 @@ void showActivationDialog() {
                         "The application will now restart."));
         
         QProcess::startDetached(QCoreApplication::applicationFilePath(), {});
+        
         QCoreApplication::quit();
     } else {
         qDebug() << "Paywall: License activation failed";
