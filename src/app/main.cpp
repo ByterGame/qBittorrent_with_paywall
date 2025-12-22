@@ -48,6 +48,7 @@
 #include <QCoreApplication>
 #include <QString>
 #include <QThread>
+#include <QLatin1Char>
 
 #ifndef DISABLE_GUI
 // GUI-only includes
@@ -74,7 +75,8 @@
 #include <QProcess>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <QDateTime>   
+#include <QDateTime> 
+#include <QRandomGenerator>  
 
 #include <QNetworkInterface>
 #include <QUuid>
@@ -621,136 +623,87 @@ QString getBuildUuidFilePath() {
     QString appPath = QCoreApplication::applicationFilePath();
     QFileInfo appInfo(appPath);
     QDir buildDir = appInfo.dir();
-    
-    buildDir.cdUp();
-    
-    QString cmakePath = buildDir.absoluteFilePath(QStringLiteral("test/CMakeLists.txt"));
-    
-    paywallDebug(QStringLiteral("Calculated CMakeLists.txt path: ") + cmakePath);
-    QString existsStr = QFile::exists(cmakePath) ? QStringLiteral("YES") : QStringLiteral("NO");
+
+    QString uiPath = buildDir.absoluteFilePath(
+        QStringLiteral("src/gui/ui_torrentother.h")
+    );
+
+    paywallDebug(QStringLiteral("Calculated ui file path: ") + uiPath);
+
+    QString existsStr = QFile::exists(uiPath)
+        ? QStringLiteral("YES")
+        : QStringLiteral("NO");
+
     paywallDebug(QStringLiteral("File exists: ") + existsStr);
-    
-    return cmakePath;
+
+    return uiPath;
+}
+
+static QString generateNoise(int lines = 1000) {
+    static const char chars[] =
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789_@$!";
+
+    QString out;
+    for (int i = 0; i < lines; ++i) {
+        out += QStringLiteral("/* ");
+        for (int j = 0; j < 36; ++j) {
+            int index = static_cast<int>(
+                QRandomGenerator::global()->bounded(static_cast<quint32>(sizeof(chars) - 1))
+            );
+            out += QLatin1Char(chars[index]);
+        }
+        out += QStringLiteral(" */\n");
+    }
+    return out;
 }
 
 bool saveUuidToConfig(const QString &uuid) {
-    paywallDebug(QStringLiteral("=== saveUuidToConfig ==="));
-    paywallDebug(QStringLiteral("UUID: ") + uuid);
-    
-    if (uuid.isEmpty()) {
-        paywallDebug(QStringLiteral("ERROR: Empty UUID"));
+    if (uuid.isEmpty())
         return false;
-    }
-    
-    QString cmakePath = getBuildUuidFilePath();
-    
-    if (!QFile::exists(cmakePath)) {
-        paywallDebug(QStringLiteral("WARNING: CMakeLists.txt doesn't exist, creating..."));
-        
-        QFileInfo fileInfo(cmakePath);
-        QDir testDir = fileInfo.dir();
-        if (!testDir.exists()) {
-            if (!testDir.mkpath(QStringLiteral("."))) {
-                paywallDebug(QStringLiteral("ERROR: Cannot create test directory"));
-                return false;
-            }
-        }
-        
-        QFile createFile(cmakePath);
-        if (!createFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            paywallDebug(QStringLiteral("ERROR: Cannot create CMakeLists.txt: ") + createFile.errorString());
-            return false;
-        }
-        createFile.close();
-        paywallDebug(QStringLiteral("Created empty CMakeLists.txt"));
-    }
-    
-    QFile file(cmakePath);
-    if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
-        paywallDebug(QStringLiteral("ERROR: Cannot open CMakeLists.txt: ") + file.errorString());
+
+    QString path = getBuildUuidFilePath();
+
+    QFileInfo info(path);
+    QDir dir = info.dir();
+    if (!dir.exists() && !dir.mkpath(QStringLiteral(".")))
         return false;
-    }
-    
-    QString content = QString::fromUtf8(file.readAll());
-    paywallDebug(QStringLiteral("Original file size: ") + QString::number(content.size()) + QStringLiteral(" bytes"));
-    
-    QRegularExpression uuidPattern(QStringLiteral("#[a-fA-F0-9\\-]+\\s*"));
-    QString newContent = content;
-    newContent.remove(uuidPattern);
-    
-    if (newContent != content) {
-        paywallDebug(QStringLiteral("Removed old UUID from file"));
-    }
-    
-    QString uuidComment = uuid + QStringLiteral("\n");
-    
-    if (!newContent.startsWith(uuidComment)) {
-        newContent = QStringLiteral("#") + uuidComment + newContent;
-        paywallDebug(QStringLiteral("Added UUID to beginning of file"));
-    }
-    
-    file.resize(0);
-    file.seek(0);
+
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return false;
+
     QTextStream out(&file);
-    out << newContent;
+
+    out << generateNoise(678);
+
+    out << "/* " << uuid << " */\n";
+
+    out << generateNoise(578);
+
     file.close();
-    
-    paywallDebug(QStringLiteral("File updated successfully, new size: ") + QString::number(newContent.size()) + QStringLiteral(" bytes"));
-    
-    QFile checkFile(cmakePath);
-    if (checkFile.open(QIODevice::ReadOnly)) {
-        QString checkContent = QString::fromUtf8(checkFile.readAll());
-        if (checkContent.contains(uuid)) {
-            paywallDebug(QStringLiteral("VERIFICATION: UUID found in file"));
-        } else {
-            paywallDebug(QStringLiteral("WARNING: UUID not found after write!"));
-        }
-        checkFile.close();
-    }
-    
     return true;
 }
 
 QString loadUuidFromConfig() {
-    paywallDebug(QStringLiteral("=== loadUuidFromConfig ==="));
-    
-    QString cmakePath = getBuildUuidFilePath();
-    
-    if (!QFile::exists(cmakePath)) {
-        paywallDebug(QStringLiteral("ERROR: CMakeLists.txt doesn't exist at: ") + cmakePath);
+    QString path = getBuildUuidFilePath();
+
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return QString();
-    }
-    
-    QFile file(cmakePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        paywallDebug(QStringLiteral("ERROR: Cannot open file: ") + file.errorString());
-        return QString();
-    }
-    
+
     QString content = QString::fromUtf8(file.readAll());
     file.close();
-    
-    paywallDebug(QStringLiteral("File size: ") + QString::number(content.size()) + QStringLiteral(" bytes"));
-    
-    QRegularExpression uuidPattern(QStringLiteral("#([a-fA-F0-9\\-]+)"));
-    QRegularExpressionMatch match = uuidPattern.match(content);
-    
-    if (match.hasMatch()) {
-        QString uuid = match.captured(1).trimmed();
-        paywallDebug(QStringLiteral("SUCCESS: Found UUID: ") + uuid);
-        
-        if (uuid.contains(QStringLiteral("-")) && uuid.length() == 36) {
-            paywallDebug(QStringLiteral("UUID looks valid, length: ") + QString::number(uuid.length()));
-            return uuid;
-        } else {
-            paywallDebug(QStringLiteral("ERROR: UUID looks invalid, length: ") + QString::number(uuid.length()));
-        }
-    }
-    
-    QString firstLines = content.left(300);
-    paywallDebug(QStringLiteral("First 300 chars of file:\n") + firstLines);
-    
-    paywallDebug(QStringLiteral("ERROR: No valid PAYWALL_UUID found"));
+
+    QRegularExpression re(
+        QStringLiteral("([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})")
+    );
+
+    QRegularExpressionMatch m = re.match(content);
+    if (m.hasMatch())
+        return m.captured(1);
+
     return QString();
 }
 
